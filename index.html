@@ -29,7 +29,8 @@
   </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
+  <script async src="https://cdn.rawgit.com/douglascrockford/JSON-js/03157639/cycle.js"></script>
 
   <script>
     new Vue({
@@ -44,22 +45,30 @@
           if (this.code) {
             this.ex = null;
             this.result = null;
-            let result;
 
             try {
-              result = eval.bind(window)(this.code.toString());
+              this.result = eval.bind(this)('(' + this.code.toString() + ')');
             } catch (ex) {
               this.ex = ex;
-              result = ex.toString();
+              this.result = ex.toString();
             }
 
-            if (typeof result === 'object') {
-              result = Object.getOwnPropertyNames(result);
-            } else if (typeof result === 'undefined') {
-              result = typeof result;
-            }
+            if (typeof this.result === 'undefined') {
+              this.result = 'undefined';
+            } else if (this.result === null) {
+              this.result = 'null';
+            } else if (typeof this.result === 'object') {
+              try {
+                this.result = JSON.stringify(JSON.decycle(this.result), null, 1);
+              } catch (ex) {
+                this.ex = ex;
+                this.result = ex.toString();
+              }              
+            } 
 
-            this.result = result;
+            if (this.ex) {
+              throw this.ex;
+            }
           }
         }
       }
